@@ -14,16 +14,223 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      availability_rules: {
+        Row: {
+          created_at: string
+          end_time: string
+          id: string
+          owner_id: string
+          start_time: string
+          weekday: number
+        }
+        Insert: {
+          created_at?: string
+          end_time: string
+          id?: string
+          owner_id: string
+          start_time: string
+          weekday: number
+        }
+        Update: {
+          created_at?: string
+          end_time?: string
+          id?: string
+          owner_id?: string
+          start_time?: string
+          weekday?: number
+        }
+        Relationships: []
+      }
+      booking_attendees: {
+        Row: {
+          booking_id: string
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          notes: string | null
+          user_id: string
+        }
+        Insert: {
+          booking_id: string
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id?: string
+          notes?: string | null
+          user_id: string
+        }
+        Update: {
+          booking_id?: string
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          notes?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booking_attendees_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      bookings: {
+        Row: {
+          created_at: string
+          end_at: string
+          event_type_id: string
+          google_event_id: string | null
+          id: string
+          start_at: string
+          status: string
+        }
+        Insert: {
+          created_at?: string
+          end_at: string
+          event_type_id: string
+          google_event_id?: string | null
+          id?: string
+          start_at: string
+          status?: string
+        }
+        Update: {
+          created_at?: string
+          end_at?: string
+          event_type_id?: string
+          google_event_id?: string | null
+          id?: string
+          start_at?: string
+          status?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "bookings_event_type_id_fkey"
+            columns: ["event_type_id"]
+            isOneToOne: false
+            referencedRelation: "event_types"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      event_types: {
+        Row: {
+          active: boolean
+          buffer_after_min: number
+          buffer_before_min: number
+          capacity: number
+          color: string
+          created_at: string
+          description: string | null
+          duration_min: number
+          id: string
+          max_days_ahead: number
+          min_notice_hours: number
+          owner_id: string
+          slug: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          active?: boolean
+          buffer_after_min?: number
+          buffer_before_min?: number
+          capacity?: number
+          color?: string
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          max_days_ahead?: number
+          min_notice_hours?: number
+          owner_id: string
+          slug: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          active?: boolean
+          buffer_after_min?: number
+          buffer_before_min?: number
+          capacity?: number
+          color?: string
+          created_at?: string
+          description?: string | null
+          duration_min?: number
+          id?: string
+          max_days_ahead?: number
+          min_notice_hours?: number
+          owner_id?: string
+          slug?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          timezone: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          timezone?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
+          timezone?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "owner" | "member"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +357,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["owner", "member"],
+    },
   },
 } as const
