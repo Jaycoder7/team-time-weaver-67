@@ -58,9 +58,16 @@ export const getSlotsForDay = createServerFn({ method: "POST" })
       .gte("start_at", dayStart.toISOString())
       .lt("start_at", dayEnd.toISOString());
 
-    // Google Calendar busy intervals
+    // Google Calendar busy intervals — exclude intervals for our own bookings so
+    // group slots stay bookable after the first attendee joins.
+    const ownBookingStarts = new Set(
+      (existingBookings ?? []).map((b) => new Date(b.start_at).getTime()),
+    );
     const { getBusyIntervals } = await import("./google-calendar.server");
-    const busy = await getBusyIntervals(dayStart.toISOString(), dayEnd.toISOString());
+    const rawBusy = await getBusyIntervals(dayStart.toISOString(), dayEnd.toISOString());
+    const busy = rawBusy.filter(
+      (b) => !ownBookingStarts.has(new Date(b.start).getTime()),
+    );
 
     const slots: Slot[] = [];
     const durMs = et.duration_min * 60_000;
