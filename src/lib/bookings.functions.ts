@@ -45,7 +45,7 @@ export const createBooking = createServerFn({ method: "POST" })
 
     if (existing) {
       const attendees = existing.booking_attendees ?? [];
-      if (attendees.some((a: { user_id: string }) => a.user_id === userId))
+      if (attendees.some((a: { user_id: string | null }) => a.user_id === userId))
         throw new Error("You're already registered for this slot");
       if (attendees.length >= et.capacity) throw new Error("This slot is full");
 
@@ -129,7 +129,7 @@ export const cancelMyBooking = createServerFn({ method: "POST" })
 
     const google = await import("./google-calendar.server");
     const remaining = (booking.booking_attendees ?? []).filter(
-      (a: { user_id: string }) => a.user_id !== userId,
+      (a: { user_id: string | null }) => a.user_id !== userId,
     );
 
     if (remaining.length === 0) {

@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { Plus, Trash2, Users, Clock, Pencil } from "lucide-react";
+import { Plus, Trash2, Users, Clock, Pencil, Link as LinkIcon } from "lucide-react";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/admin/event-types/")({
@@ -72,6 +72,22 @@ function EventTypesList() {
                 if (confirm(`Delete "${et.title}"? This also removes its bookings.`)) del.mutate(et.id);
               }}>
                 <Trash2 className="h-3 w-3" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                title="Copy share link"
+                onClick={async () => {
+                  const url = `${window.location.origin}/book/${et.slug}`;
+                  try {
+                    await navigator.clipboard.writeText(url);
+                    toast.success("Share link copied");
+                  } catch {
+                    toast.error(url);
+                  }
+                }}
+              >
+                <LinkIcon className="h-3 w-3" />
               </Button>
             </CardContent>
           </Card>
