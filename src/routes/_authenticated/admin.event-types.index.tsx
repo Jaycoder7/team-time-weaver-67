@@ -9,7 +9,7 @@ import { Switch } from "@/components/ui/switch";
 import { Plus, Trash2, Users, Clock, Pencil } from "lucide-react";
 import { toast } from "sonner";
 
-export const Route = createFileRoute("/_authenticated/admin/event-types")({
+export const Route = createFileRoute("/_authenticated/admin/event-types/")({
   component: EventTypesList,
 });
 
