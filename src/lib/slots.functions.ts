@@ -94,7 +94,7 @@ export const getSlotsForDay = createServerFn({ method: "POST" })
         );
         const attendees = existing?.booking_attendees ?? [];
         const attendeeCount = attendees.length;
-        const joined = attendees.some((a: { user_id: string }) => a.user_id === userId);
+        const joined = attendees.some((a: { user_id: string | null }) => a.user_id === userId);
         const full = attendeeCount >= et.capacity;
 
         // Also block if any other booking (different start) overlaps this slot when capacity == 1
