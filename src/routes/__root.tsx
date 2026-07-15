@@ -79,10 +79,14 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "viewport", content: "width=device-width, initial-scale=1" },
       { title: "Team Slots — internal scheduling" },
       { name: "description", content: "Book time on the team calendar. Private scheduling for your team, synced with Google Calendar." },
-      { property: "og:title", content: "Team Slots" },
-      { property: "og:description", content: "Private team scheduling synced with Google Calendar." },
+      { property: "og:title", content: "Team Slots — internal scheduling" },
+      { property: "og:description", content: "Book time on the team calendar. Private scheduling for your team, synced with Google Calendar." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:title", content: "Team Slots — internal scheduling" },
+      { name: "twitter:description", content: "Book time on the team calendar. Private scheduling for your team, synced with Google Calendar." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/acfd8a05-9e14-412b-989d-d3c2e2d2d1e9/id-preview-a181be0d--45215452-d12c-4b06-9c23-6ebcf42150f2.lovable.app-1784076221696.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/acfd8a05-9e14-412b-989d-d3c2e2d2d1e9/id-preview-a181be0d--45215452-d12c-4b06-9c23-6ebcf42150f2.lovable.app-1784076221696.png" },
     ],
     links: [
       {
