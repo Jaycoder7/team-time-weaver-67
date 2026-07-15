@@ -49,7 +49,7 @@ export type Database = {
           full_name: string | null
           id: string
           notes: string | null
-          user_id: string
+          user_id: string | null
         }
         Insert: {
           booking_id: string
@@ -58,7 +58,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           notes?: string | null
-          user_id: string
+          user_id?: string | null
         }
         Update: {
           booking_id?: string
@@ -67,7 +67,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           notes?: string | null
-          user_id?: string
+          user_id?: string | null
         }
         Relationships: [
           {
