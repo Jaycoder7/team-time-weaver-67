@@ -14,7 +14,6 @@ import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AuthenticatedMyBookingsRouteImport } from './routes/_authenticated/my-bookings'
 import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
-import { Route as AuthenticatedBookSlugRouteImport } from './routes/_authenticated/book.$slug'
 import { Route as AuthenticatedAdminBookingsRouteImport } from './routes/_authenticated/admin.bookings'
 import { Route as AuthenticatedAdminAvailabilityRouteImport } from './routes/_authenticated/admin.availability'
 import { Route as AuthenticatedAdminEventTypesIndexRouteImport } from './routes/_authenticated/admin.event-types.index'
@@ -42,11 +41,6 @@ const AuthenticatedMyBookingsRoute = AuthenticatedMyBookingsRouteImport.update({
 const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
   id: '/admin',
   path: '/admin',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedBookSlugRoute = AuthenticatedBookSlugRouteImport.update({
-  id: '/book/$slug',
-  path: '/book/$slug',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedAdminBookingsRoute =
@@ -81,7 +75,6 @@ export interface FileRoutesByFullPath {
   '/my-bookings': typeof AuthenticatedMyBookingsRoute
   '/admin/availability': typeof AuthenticatedAdminAvailabilityRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
-  '/book/$slug': typeof AuthenticatedBookSlugRoute
   '/admin/event-types/$id': typeof AuthenticatedAdminEventTypesIdRoute
   '/admin/event-types/': typeof AuthenticatedAdminEventTypesIndexRoute
 }
@@ -92,7 +85,6 @@ export interface FileRoutesByTo {
   '/my-bookings': typeof AuthenticatedMyBookingsRoute
   '/admin/availability': typeof AuthenticatedAdminAvailabilityRoute
   '/admin/bookings': typeof AuthenticatedAdminBookingsRoute
-  '/book/$slug': typeof AuthenticatedBookSlugRoute
   '/admin/event-types/$id': typeof AuthenticatedAdminEventTypesIdRoute
   '/admin/event-types': typeof AuthenticatedAdminEventTypesIndexRoute
 }
@@ -105,7 +97,6 @@ export interface FileRoutesById {
   '/_authenticated/my-bookings': typeof AuthenticatedMyBookingsRoute
   '/_authenticated/admin/availability': typeof AuthenticatedAdminAvailabilityRoute
   '/_authenticated/admin/bookings': typeof AuthenticatedAdminBookingsRoute
-  '/_authenticated/book/$slug': typeof AuthenticatedBookSlugRoute
   '/_authenticated/admin/event-types/$id': typeof AuthenticatedAdminEventTypesIdRoute
   '/_authenticated/admin/event-types/': typeof AuthenticatedAdminEventTypesIndexRoute
 }
@@ -118,7 +109,6 @@ export interface FileRouteTypes {
     | '/my-bookings'
     | '/admin/availability'
     | '/admin/bookings'
-    | '/book/$slug'
     | '/admin/event-types/$id'
     | '/admin/event-types/'
   fileRoutesByTo: FileRoutesByTo
@@ -129,7 +119,6 @@ export interface FileRouteTypes {
     | '/my-bookings'
     | '/admin/availability'
     | '/admin/bookings'
-    | '/book/$slug'
     | '/admin/event-types/$id'
     | '/admin/event-types'
   id:
@@ -141,7 +130,6 @@ export interface FileRouteTypes {
     | '/_authenticated/my-bookings'
     | '/_authenticated/admin/availability'
     | '/_authenticated/admin/bookings'
-    | '/_authenticated/book/$slug'
     | '/_authenticated/admin/event-types/$id'
     | '/_authenticated/admin/event-types/'
   fileRoutesById: FileRoutesById
@@ -187,13 +175,6 @@ declare module '@tanstack/react-router' {
       path: '/admin'
       fullPath: '/admin'
       preLoaderRoute: typeof AuthenticatedAdminRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/book/$slug': {
-      id: '/_authenticated/book/$slug'
-      path: '/book/$slug'
-      fullPath: '/book/$slug'
-      preLoaderRoute: typeof AuthenticatedBookSlugRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/admin/bookings': {
@@ -248,13 +229,11 @@ const AuthenticatedAdminRouteWithChildren =
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedAdminRoute: typeof AuthenticatedAdminRouteWithChildren
   AuthenticatedMyBookingsRoute: typeof AuthenticatedMyBookingsRoute
-  AuthenticatedBookSlugRoute: typeof AuthenticatedBookSlugRoute
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedAdminRoute: AuthenticatedAdminRouteWithChildren,
   AuthenticatedMyBookingsRoute: AuthenticatedMyBookingsRoute,
-  AuthenticatedBookSlugRoute: AuthenticatedBookSlugRoute,
 }
 
 const AuthenticatedRouteRouteWithChildren =
