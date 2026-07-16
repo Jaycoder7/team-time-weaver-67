@@ -34,18 +34,16 @@ export const getSlotsForDay = createServerFn({ method: "POST" })
       .select("timezone")
       .eq("id", et.owner_id)
       .maybeSingle();
-    const _tz = profile?.timezone ?? "UTC"; // reserved for future timezone-aware conversion
-    void _tz;
+    const tz = profile?.timezone ?? "UTC";
 
-    // Interpret dateISO in server UTC for simplicity — availability rules are
-    // stored in local wall time; we build slots as UTC on that calendar date.
+    const { zonedWallTimeToUtc, weekdayInZone } = await import("./timezone.server");
     const [y, m, d] = data.dateISO.split("-").map(Number);
-    const weekday = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+    const weekday = weekdayInZone(data.dateISO, tz);
     const dayRules = (rules ?? []).filter((r) => r.weekday === weekday);
     if (dayRules.length === 0) return [];
 
-    const dayStart = new Date(Date.UTC(y, m - 1, d, 0, 0, 0));
-    const dayEnd = new Date(Date.UTC(y, m - 1, d + 1, 0, 0, 0));
+    const dayStart = zonedWallTimeToUtc(y, m, d, 0, 0, tz);
+    const dayEnd = zonedWallTimeToUtc(y, m, d + 1, 0, 0, tz);
     const now = new Date();
     const minStart = new Date(now.getTime() + et.min_notice_hours * 3600_000);
     const maxStart = new Date(now.getTime() + et.max_days_ahead * 86400_000);
@@ -77,8 +75,8 @@ export const getSlotsForDay = createServerFn({ method: "POST" })
     for (const rule of dayRules) {
       const [sh, sm] = rule.start_time.split(":").map(Number);
       const [eh, em] = rule.end_time.split(":").map(Number);
-      const winStart = new Date(Date.UTC(y, m - 1, d, sh, sm));
-      const winEnd = new Date(Date.UTC(y, m - 1, d, eh, em));
+      const winStart = zonedWallTimeToUtc(y, m, d, sh, sm, tz);
+      const winEnd = zonedWallTimeToUtc(y, m, d, eh, em, tz);
 
       for (let t = winStart.getTime(); t + durMs <= winEnd.getTime(); t += durMs) {
         const s = new Date(t);
