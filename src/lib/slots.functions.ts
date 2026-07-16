@@ -9,6 +9,7 @@ export interface Slot {
   attendeeCount: number;
   full: boolean;
   joined: boolean;
+  timeZone: string;
 }
 
 const inputSchema = z.object({
@@ -34,11 +35,12 @@ export const getSlotsForDay = createServerFn({ method: "POST" })
       .select("timezone")
       .eq("id", et.owner_id)
       .maybeSingle();
-    const tz = profile?.timezone ?? "UTC";
+    const { getPrimaryCalendarTimeZone } = await import("./google-calendar.server");
+    const { safeTimeZone, zonedWallTimeToUtc, weekdayFromDateISO } = await import("./timezone.server");
+    const tz = (await getPrimaryCalendarTimeZone()) ?? safeTimeZone(profile?.timezone) ?? "UTC";
 
-    const { zonedWallTimeToUtc, weekdayInZone } = await import("./timezone.server");
     const [y, m, d] = data.dateISO.split("-").map(Number);
-    const weekday = weekdayInZone(data.dateISO, tz);
+    const weekday = weekdayFromDateISO(data.dateISO);
     const dayRules = (rules ?? []).filter((r) => r.weekday === weekday);
     if (dayRules.length === 0) return [];
 
@@ -119,6 +121,7 @@ export const getSlotsForDay = createServerFn({ method: "POST" })
           attendeeCount,
           full,
           joined,
+          timeZone: tz,
         });
       }
     }

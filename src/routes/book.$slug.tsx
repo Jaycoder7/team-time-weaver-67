@@ -90,9 +90,27 @@ function BookPage() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const slotTimeZone = slots.data?.[0]?.timeZone;
   const timeFormat = useMemo(
-    () => new Intl.DateTimeFormat(undefined, { hour: "numeric", minute: "2-digit" }),
-    [],
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: slotTimeZone,
+      }),
+    [slotTimeZone],
+  );
+  const dateTimeFormat = useMemo(
+    () =>
+      new Intl.DateTimeFormat(undefined, {
+        weekday: "long",
+        month: "long",
+        day: "numeric",
+        hour: "numeric",
+        minute: "2-digit",
+        timeZone: slotTimeZone,
+      }),
+    [slotTimeZone],
   );
 
   if (et.isLoading) {
@@ -116,13 +134,7 @@ function BookPage() {
             </div>
             <h1 className="text-xl font-semibold">You're booked</h1>
             <p className="text-muted-foreground">
-              {new Date(selectedISO).toLocaleString(undefined, {
-                weekday: "long",
-                month: "long",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              })}
+              {dateTimeFormat.format(new Date(selectedISO))}
             </p>
             <Button variant="outline" onClick={() => { setConfirmed(false); setSelectedISO(null); }}>
               Book another time
