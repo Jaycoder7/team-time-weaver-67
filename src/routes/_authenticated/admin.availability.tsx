@@ -54,7 +54,7 @@ function AvailabilityPage() {
       <Card>
         <CardContent className="py-6">
           <p className="mb-4 text-sm text-muted-foreground">
-            Weekly hours you're available. Times use the server timezone.
+            Weekly hours you're available. Times use your profile timezone.
           </p>
           <div className="space-y-4">
             {DAYS.map((day, idx) => {
