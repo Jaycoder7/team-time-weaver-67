@@ -1,0 +1,1 @@
+REVOKE ALL ON FUNCTION public.enforce_booking_attendee_capacity() FROM PUBLIC, anon, authenticated;
