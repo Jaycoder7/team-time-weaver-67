@@ -14,21 +14,6 @@ async function admin() {
   return supabaseAdmin;
 }
 
-async function getBookingTimeZone(ownerId: string): Promise<string> {
-  const { getPrimaryCalendarTimeZone } = await import("./google-calendar.server");
-  const calendarTz = await getPrimaryCalendarTimeZone();
-  if (calendarTz) return calendarTz;
-
-  const db = await admin();
-  const { safeTimeZone } = await import("./timezone.server");
-  const { data: ownerProfile } = await db
-    .from("profiles")
-    .select("timezone")
-    .eq("id", ownerId)
-    .maybeSingle();
-  return safeTimeZone(ownerProfile?.timezone) ?? "UTC";
-}
-
 export const getPublicEventType = createServerFn({ method: "GET" })
   .inputValidator((input: { slug: string }) => z.object({ slug: z.string().min(1) }).parse(input))
   .handler(async ({ data }) => {
@@ -62,7 +47,15 @@ export const getPublicSlots = createServerFn({ method: "POST" })
       .select("*")
       .eq("owner_id", et.owner_id);
 
-    const tz = await getBookingTimeZone(et.owner_id);
+    const { getBookingTimeZone } = await import("./booking-timezone.server");
+    const tz = await getBookingTimeZone(et.owner_id, async (ownerId) => {
+      const { data: ownerProfile } = await db
+        .from("profiles")
+        .select("timezone")
+        .eq("id", ownerId)
+        .maybeSingle();
+      return ownerProfile?.timezone;
+    });
 
     const { zonedWallTimeToUtc, weekdayFromDateISO } = await import("./timezone.server");
     const [y, m, d] = data.dateISO.split("-").map(Number);
@@ -178,7 +171,15 @@ export const createPublicBooking = createServerFn({ method: "POST" })
       .maybeSingle();
 
     const google = await import("./google-calendar.server");
-    const tz = await getBookingTimeZone(et.owner_id);
+    const { getBookingTimeZone } = await import("./booking-timezone.server");
+    const tz = await getBookingTimeZone(et.owner_id, async (ownerId) => {
+      const { data: ownerProfile } = await db
+        .from("profiles")
+        .select("timezone")
+        .eq("id", ownerId)
+        .maybeSingle();
+      return ownerProfile?.timezone;
+    });
 
     if (existing) {
       const attendees = existing.booking_attendees ?? [];
