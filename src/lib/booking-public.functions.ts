@@ -6,11 +6,27 @@ export interface PublicSlot {
   endISO: string;
   attendeeCount: number;
   full: boolean;
+  timeZone: string;
 }
 
 async function admin() {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
   return supabaseAdmin;
+}
+
+async function getBookingTimeZone(ownerId: string): Promise<string> {
+  const { getPrimaryCalendarTimeZone } = await import("./google-calendar.server");
+  const calendarTz = await getPrimaryCalendarTimeZone();
+  if (calendarTz) return calendarTz;
+
+  const db = await admin();
+  const { safeTimeZone } = await import("./timezone.server");
+  const { data: ownerProfile } = await db
+    .from("profiles")
+    .select("timezone")
+    .eq("id", ownerId)
+    .maybeSingle();
+  return safeTimeZone(ownerProfile?.timezone) ?? "UTC";
 }
 
 export const getPublicEventType = createServerFn({ method: "GET" })
@@ -46,16 +62,11 @@ export const getPublicSlots = createServerFn({ method: "POST" })
       .select("*")
       .eq("owner_id", et.owner_id);
 
-    const { data: ownerProfile } = await db
-      .from("profiles")
-      .select("timezone")
-      .eq("id", et.owner_id)
-      .maybeSingle();
-    const tz = ownerProfile?.timezone ?? "UTC";
+    const tz = await getBookingTimeZone(et.owner_id);
 
-    const { zonedWallTimeToUtc, weekdayInZone } = await import("./timezone.server");
+    const { zonedWallTimeToUtc, weekdayFromDateISO } = await import("./timezone.server");
     const [y, m, d] = data.dateISO.split("-").map(Number);
-    const weekday = weekdayInZone(data.dateISO, tz);
+    const weekday = weekdayFromDateISO(data.dateISO);
     const dayRules = (rules ?? []).filter((r) => r.weekday === weekday);
     if (dayRules.length === 0) return [];
 
@@ -126,6 +137,7 @@ export const getPublicSlots = createServerFn({ method: "POST" })
           endISO: new Date(t + durMs).toISOString(),
           attendeeCount,
           full,
+          timeZone: tz,
         });
       }
     }
@@ -166,6 +178,7 @@ export const createPublicBooking = createServerFn({ method: "POST" })
       .maybeSingle();
 
     const google = await import("./google-calendar.server");
+    const tz = await getBookingTimeZone(et.owner_id);
 
     if (existing) {
       const attendees = existing.booking_attendees ?? [];
@@ -199,6 +212,7 @@ export const createPublicBooking = createServerFn({ method: "POST" })
       description: et.description ?? undefined,
       startISO,
       endISO,
+      timeZone: tz,
       attendees: [{ email: data.email, displayName: data.name }],
     });
 

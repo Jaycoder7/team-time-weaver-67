@@ -1,6 +1,8 @@
 // Google Calendar helpers via Lovable connector gateway.
 // Safe to call when GOOGLE_CALENDAR_API_KEY is unset — returns null/no-op.
 
+import { formatGoogleDateTime, safeTimeZone } from "./timezone.server";
+
 const GATEWAY = "https://connector-gateway.lovable.dev/google_calendar/calendar/v3";
 
 export function isGoogleCalendarConnected(): boolean {
@@ -13,6 +15,20 @@ function headers(): Record<string, string> {
     "X-Connection-Api-Key": process.env.GOOGLE_CALENDAR_API_KEY!,
     "Content-Type": "application/json",
   };
+}
+
+export async function getPrimaryCalendarTimeZone(): Promise<string | null> {
+  if (!isGoogleCalendarConnected()) return null;
+  const res = await fetch(`${GATEWAY}/calendars/primary`, {
+    method: "GET",
+    headers: headers(),
+  });
+  if (!res.ok) {
+    console.error("google calendar timezone lookup failed", res.status, await res.text());
+    return null;
+  }
+  const body = (await res.json()) as { timeZone?: string };
+  return safeTimeZone(body.timeZone) ?? null;
 }
 
 /** Returns array of {start,end} busy intervals from the primary calendar for the range. */
@@ -50,17 +66,23 @@ export async function createCalendarEvent(input: {
   description?: string;
   startISO: string;
   endISO: string;
+  timeZone?: string;
   attendees: GoogleAttendee[];
 }): Promise<string | null> {
   if (!isGoogleCalendarConnected()) return null;
+  const timeZone = safeTimeZone(input.timeZone) ?? undefined;
   const res = await fetch(`${GATEWAY}/calendars/primary/events?sendUpdates=all`, {
     method: "POST",
     headers: headers(),
     body: JSON.stringify({
       summary: input.summary,
       description: input.description,
-      start: { dateTime: input.startISO },
-      end: { dateTime: input.endISO },
+      start: timeZone
+        ? { dateTime: formatGoogleDateTime(input.startISO, timeZone), timeZone }
+        : { dateTime: input.startISO },
+      end: timeZone
+        ? { dateTime: formatGoogleDateTime(input.endISO, timeZone), timeZone }
+        : { dateTime: input.endISO },
       attendees: input.attendees,
     }),
   });

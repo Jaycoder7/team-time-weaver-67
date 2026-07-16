@@ -42,6 +42,13 @@ export const createBooking = createServerFn({ method: "POST" })
       .maybeSingle();
 
     const google = await import("./google-calendar.server");
+    const { data: ownerProfile } = await supabase
+      .from("profiles")
+      .select("timezone")
+      .eq("id", et.owner_id)
+      .maybeSingle();
+    const { safeTimeZone } = await import("./timezone.server");
+    const timeZone = (await google.getPrimaryCalendarTimeZone()) ?? safeTimeZone(ownerProfile?.timezone) ?? "UTC";
 
     if (existing) {
       const attendees = existing.booking_attendees ?? [];
@@ -78,6 +85,7 @@ export const createBooking = createServerFn({ method: "POST" })
       description: et.description ?? undefined,
       startISO,
       endISO,
+      timeZone,
       attendees: [{ email: profile.email, displayName: profile.full_name ?? undefined }],
     });
 
