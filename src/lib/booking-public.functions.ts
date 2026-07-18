@@ -183,8 +183,10 @@ export const createPublicBooking = createServerFn({ method: "POST" })
 
     if (existing) {
       const attendees = existing.booking_attendees ?? [];
-      if (attendees.some((a) => a.email.toLowerCase() === emailLower))
-        throw new Error("You're already registered for this slot");
+      if (attendees.some((a) => a.email.toLowerCase() === emailLower)) {
+        // Idempotent: same email re-submitting the same slot is a no-op success.
+        return { bookingId: existing.id, alreadyRegistered: true as const };
+      }
       if (attendees.length >= et.capacity) throw new Error("This slot is full");
 
       const { error: attErr } = await db.from("booking_attendees").insert({
