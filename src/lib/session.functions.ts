@@ -20,6 +20,7 @@ export const getMe = createServerFn({ method: "GET" })
 
 export const getGoogleCalendarStatus = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .handler(async () => {
-    return { connected: Boolean(process.env.LOVABLE_API_KEY && process.env.GOOGLE_CALENDAR_API_KEY) };
+  .handler(async ({ context }) => {
+    const { userHasConnection } = await import("@/server/appUserConnections.server");
+    return { connected: await userHasConnection(context.userId, "google_calendar") };
   });
