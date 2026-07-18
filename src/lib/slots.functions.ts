@@ -37,7 +37,9 @@ export const getSlotsForDay = createServerFn({ method: "POST" })
       .maybeSingle();
     const { getPrimaryCalendarTimeZone } = await import("./google-calendar.server");
     const { safeTimeZone, zonedWallTimeToUtc, weekdayFromDateISO } = await import("./timezone.server");
-    const tz = (await getPrimaryCalendarTimeZone()) ?? safeTimeZone(profile?.timezone) ?? "UTC";
+    const { getConnectionKeyForUser } = await import("@/server/appUserConnections.server");
+    const ownerKey = await getConnectionKeyForUser(et.owner_id, "google_calendar");
+    const tz = (await getPrimaryCalendarTimeZone(ownerKey)) ?? safeTimeZone(profile?.timezone) ?? "UTC";
 
     const [y, m, d] = data.dateISO.split("-").map(Number);
     const weekday = weekdayFromDateISO(data.dateISO);
@@ -64,7 +66,7 @@ export const getSlotsForDay = createServerFn({ method: "POST" })
       (existingBookings ?? []).map((b) => new Date(b.start_at).getTime()),
     );
     const { getBusyIntervals } = await import("./google-calendar.server");
-    const rawBusy = await getBusyIntervals(dayStart.toISOString(), dayEnd.toISOString());
+    const rawBusy = await getBusyIntervals(ownerKey, dayStart.toISOString(), dayEnd.toISOString());
     const busy = rawBusy.filter(
       (b) => !ownBookingStarts.has(new Date(b.start).getTime()),
     );
