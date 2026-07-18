@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Slot {
+  id           String    @id @default(uuid())
+  title        String
+  startTime    DateTime
+  endTime      DateTime
+  capacity     Int
+  status       String    @default("ACTIVE")
+  googleEventId String?  
+  bookings     Booking[]
+  createdAt    DateTime  @default(now())
+}
+
+model Booking {
+  id               String   @id @default(uuid())
+  slotId           String
+  slot             Slot     @relation(fields: [slotId], references: [id])
+  name             String
+  email            String
+  attendeeCount    Int
+  status           String   @default("CONFIRMED")
+  cancellationToken String  @unique
+  createdAt        DateTime @default(now())
+}
+
+model Admin {
+  id Int @id @default(1)
+  googleRefreshToken String?
+  calendarId String?
+}
