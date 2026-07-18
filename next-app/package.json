@@ -1,0 +1,27 @@
+{
+  "name": "team-time-weaver-booking",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "prisma": "prisma"
+  },
+  "dependencies": {
+    "next": "14.0.0",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "@prisma/client": "5.10.0",
+    "prisma": "5.10.0",
+    "tailwindcss": "3.5.0",
+    "postcss": "8.4.0",
+    "autoprefixer": "10.4.0",
+    "googleapis": "121.0.0",
+    "resend": "0.3.0",
+    "uuid": "9.0.0"
+  },
+  "devDependencies": {
+    "typescript": "5.6.2"
+  }
+}
