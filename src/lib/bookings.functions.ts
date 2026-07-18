@@ -48,7 +48,9 @@ export const createBooking = createServerFn({ method: "POST" })
       .eq("id", et.owner_id)
       .maybeSingle();
     const { safeTimeZone } = await import("./timezone.server");
-    const timeZone = (await google.getPrimaryCalendarTimeZone()) ?? safeTimeZone(ownerProfile?.timezone) ?? "UTC";
+    const { getConnectionKeyForUser } = await import("@/server/appUserConnections.server");
+    const ownerKey = await getConnectionKeyForUser(et.owner_id, "google_calendar");
+    const timeZone = (await google.getPrimaryCalendarTimeZone(ownerKey)) ?? safeTimeZone(ownerProfile?.timezone) ?? "UTC";
 
     if (existing) {
       const attendees = existing.booking_attendees ?? [];
@@ -74,13 +76,13 @@ export const createBooking = createServerFn({ method: "POST" })
           })),
           { email: profile.email, displayName: profile.full_name ?? undefined },
         ];
-        await google.patchAttendees(existing.google_event_id, newList);
+        await google.patchAttendees(ownerKey, existing.google_event_id, newList);
       }
       return { bookingId: existing.id };
     }
 
     // New booking: create Google event first (if connected)
-    const gEventId = await google.createCalendarEvent({
+    const gEventId = await google.createCalendarEvent(ownerKey, {
       summary: et.title,
       description: et.description ?? undefined,
       startISO,
@@ -136,15 +138,24 @@ export const cancelMyBooking = createServerFn({ method: "POST" })
     if (delErr) throw new Error(delErr.message);
 
     const google = await import("./google-calendar.server");
+    const { data: bookedEt } = await supabase
+      .from("bookings")
+      .select("event_type:event_types(owner_id)")
+      .eq("id", data.bookingId)
+      .maybeSingle();
+    const ownerIdForKey = (bookedEt?.event_type as { owner_id?: string } | null)?.owner_id ?? userId;
+    const { getConnectionKeyForUser } = await import("@/server/appUserConnections.server");
+    const ownerKey = await getConnectionKeyForUser(ownerIdForKey, "google_calendar");
     const remaining = (booking.booking_attendees ?? []).filter(
       (a: { user_id: string | null }) => a.user_id !== userId,
     );
 
     if (remaining.length === 0) {
-      if (booking.google_event_id) await google.deleteCalendarEvent(booking.google_event_id);
+      if (booking.google_event_id) await google.deleteCalendarEvent(ownerKey, booking.google_event_id);
       await supabase.from("bookings").delete().eq("id", data.bookingId);
     } else if (booking.google_event_id) {
       await google.patchAttendees(
+        ownerKey,
         booking.google_event_id,
         remaining.map((a: { email: string; full_name: string | null }) => ({
           email: a.email,
