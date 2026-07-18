@@ -48,7 +48,9 @@ export const getPublicSlots = createServerFn({ method: "POST" })
       .eq("owner_id", et.owner_id);
 
     const { getBookingTimeZone } = await import("./booking-timezone.server");
-    const tz = await getBookingTimeZone(et.owner_id, async (ownerId) => {
+    const { getConnectionKeyForUser } = await import("@/server/appUserConnections.server");
+    const ownerKey = await getConnectionKeyForUser(et.owner_id, "google_calendar");
+    const tz = await getBookingTimeZone(et.owner_id, ownerKey, async (ownerId: string) => {
       const { data: ownerProfile } = await db
         .from("profiles")
         .select("timezone")
@@ -81,7 +83,7 @@ export const getPublicSlots = createServerFn({ method: "POST" })
     );
 
     const { getBusyIntervals } = await import("./google-calendar.server");
-    const rawBusy = await getBusyIntervals(dayStart.toISOString(), dayEnd.toISOString());
+    const rawBusy = await getBusyIntervals(ownerKey, dayStart.toISOString(), dayEnd.toISOString());
     // Exclude busy intervals created by our own bookings so group slots stay
     // visible after the first booking creates a Google event.
     const busy = rawBusy.filter((b) => !ownBookingStarts.has(new Date(b.start).getTime()));
@@ -172,7 +174,9 @@ export const createPublicBooking = createServerFn({ method: "POST" })
 
     const google = await import("./google-calendar.server");
     const { getBookingTimeZone } = await import("./booking-timezone.server");
-    const tz = await getBookingTimeZone(et.owner_id, async (ownerId) => {
+    const { getConnectionKeyForUser } = await import("@/server/appUserConnections.server");
+    const ownerKey = await getConnectionKeyForUser(et.owner_id, "google_calendar");
+    const tz = await getBookingTimeZone(et.owner_id, ownerKey, async (ownerId: string) => {
       const { data: ownerProfile } = await db
         .from("profiles")
         .select("timezone")
@@ -205,12 +209,12 @@ export const createPublicBooking = createServerFn({ method: "POST" })
           })),
           { email: data.email, displayName: data.name },
         ];
-        await google.patchAttendees(existing.google_event_id, newList);
+        await google.patchAttendees(ownerKey, existing.google_event_id, newList);
       }
       return { bookingId: existing.id };
     }
 
-    const gEventId = await google.createCalendarEvent({
+    const gEventId = await google.createCalendarEvent(ownerKey, {
       summary: et.title,
       description: et.description ?? undefined,
       startISO,
